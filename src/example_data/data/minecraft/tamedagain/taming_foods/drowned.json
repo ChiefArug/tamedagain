@@ -1,0 +1,8 @@
+{
+  "food_ingredient": {
+    "type": "forge:partial_nbt",
+    "item": "minecraft:fishing_rod",
+    "nbt": "{Damage:0b}"
+  },
+  "chance": 0.333
+}

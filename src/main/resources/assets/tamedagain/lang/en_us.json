@@ -1,0 +1,6 @@
+{
+  "item.tamedagain.staff": "Taming Staff",
+  "tamedagain.now_sitting.message": "%s is now sitting!",
+  "tamedagain.now_following.message": "%s is now following!",
+  "tamedagain.not_enough__xp_levels.message": "Not enough XP levels to tame %s! You need %s levels"
+}

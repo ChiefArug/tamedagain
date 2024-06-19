@@ -1,0 +1,8 @@
+{
+  "food_ingredient": {
+    "type": "forge:difference",
+    "base": { "tag": "minecraft:logs" },
+    "subtracted": { "tag": "minecraft:logs_that_burn" }
+  },
+  "chance": 0.1
+}

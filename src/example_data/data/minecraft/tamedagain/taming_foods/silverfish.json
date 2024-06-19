@@ -1,0 +1,11 @@
+{
+  "food_ingredient": [
+    { "item": "minecraft:cracked_stone_bricks" },
+    {
+      "type": "forge:partial_nbt",
+      "item": "minecraft:wooden_shovel",
+      "nbt": "{Damage:0}"
+    }
+  ],
+  "chance": 0.01
+}

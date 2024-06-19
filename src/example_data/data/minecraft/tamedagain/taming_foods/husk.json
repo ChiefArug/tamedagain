@@ -1,0 +1,10 @@
+{
+  "food_ingredient": {
+    "type": "forge:intersection",
+    "children": [
+      { "tag": "minecraft:planks" },
+      { "tag": "minecraft:non_flammable_wood" }
+    ]
+  },
+  "chance": 0.02
+}

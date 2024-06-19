@@ -1,0 +1,14 @@
+{
+  "food_ingredient": {
+    "type": "forge:partial_nbt",
+    "items": [
+      "minecraft:iron_sword",
+      "minecraft:iron_shovel",
+      "minecraft:iron_pickaxe",
+      "minecraft:iron_hoe",
+      "minecraft:iron_axe"
+    ],
+    "nbt": "{Damage:0b}"
+  },
+  "chance": 1
+}
