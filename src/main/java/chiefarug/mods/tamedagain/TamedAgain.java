@@ -10,7 +10,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -25,7 +24,7 @@ public class TamedAgain {
 
     // Helper class for a 1.19.4 feature.
     public static class ResauceLocation extends ResourceLocation {
-        public ResauceLocation() {
+        private ResauceLocation() {
             super(MODID, MODID);
         }
 

@@ -55,23 +55,24 @@ public class TameEventHandlers {
             EntityType<?> type = entity.getType();
 
             toTame:
-            if (item.is(TamedAgain.STAFF)) {
+            if (CommonConfig.enableStaff.get() && item.is(TamedAgain.STAFF)) {
                 if (type.is(TamedAgain.STAFF_TAME_BLACKLIST)) return;
                 if (player.isCreative()) break toTame;
                 float health = CommonConfig.staffXpCostUseCurrentHealth.get() ? entity.getHealth() : entity.getMaxHealth();
                 int requiredXpLevels = (int) Math.ceil(CommonConfig.staffXpCost.get() * health);
-                if (player.experienceLevel < requiredXpLevels) {
-                    player.displayClientMessage(CommonConfig.useTranslations.get() ?
-                            Component.translatable("tamedagain.not_enough__xp_levels.message", entity.getDisplayName(), String.valueOf(requiredXpLevels)) :
-                            Component.literal("Not enough xp levels to tame ").append(entity.getDisplayName()).append("! You need " + requiredXpLevels + " levels"),
-                    true);
-                    return;
+                if (player.experienceLevel >= requiredXpLevels) {
+                    player.giveExperienceLevels(-requiredXpLevels);
+                    break toTame;
                 }
-                player.giveExperienceLevels(-requiredXpLevels);
+                player.displayClientMessage(CommonConfig.useTranslations.get() ?
+                                Component.translatable("tamedagain.not_enough__xp_levels.message", entity.getDisplayName(), String.valueOf(requiredXpLevels)) :
+                                Component.literal("Not enough xp levels to tame ").append(entity.getDisplayName()).append("! You need " + requiredXpLevels + " levels"),
+                        true);
+                break toCancel;
             } else {
                 ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(type);
                 @Nullable
-                TamingFood food = event.getLevel().getServer().registryAccess().registryOrThrow(TamingFood.REGISTRY.getRegistryKey()).get(entityId);
+                TamingFood food = event.getLevel().getServer().registryAccess().registryOrThrow(TamingFood.REGISTRY_KEY).get(entityId);
                 if (food == null || !food.validItems().test(item)) return;
 
                 entity.playSound(entity.getEatingSound(item));

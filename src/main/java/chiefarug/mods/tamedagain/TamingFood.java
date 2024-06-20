@@ -7,9 +7,10 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.NewRegistryEvent;
 import net.minecraftforge.registries.RegistryBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -35,14 +36,15 @@ public record TamingFood(Ingredient validItems, float chance) {
             INGREDIENT_CODEC.fieldOf("food_ingredient").forGetter(TamingFood::validItems),
             Codec.floatRange(0,1).fieldOf("chance").forGetter(TamingFood::chance)
     ).apply(instance, TamingFood::new));
+
     @NotNull // for all intents and purposes it is not null when we are accessing it
     @SuppressWarnings("NotNullFieldNotInitialized") // so just shut it up about it being null
-    public static IForgeRegistry<TamingFood> REGISTRY;
+    public static ResourceKey<Registry<TamingFood>> REGISTRY_KEY;
 
     static void registerRegistry(NewRegistryEvent event) {
         event.create(new RegistryBuilder<TamingFood>()
                 .setName(MODRL.withPath("taming_foods"))
-                .dataPackRegistry(TamingFood.CODEC), created -> REGISTRY = created);
+                .dataPackRegistry(TamingFood.CODEC), created -> REGISTRY_KEY = created.getRegistryKey());
     }
 
 

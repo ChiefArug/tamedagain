@@ -29,7 +29,6 @@ public record StartupConfig(boolean registerStaff) {
     ).apply(instance, StartupConfig::new));
     private static @NotNull JsonObject addComments(JsonObject config) {
         config.addProperty("register_staff_comment", "If the staff item should be registered. Disabling this allows the mod to be used on servers without the clients needing it, but you must tag another item with tamedagain:staff if you want to allow a single item to tame anything.");
-        config.addProperty("taming_foods_comment", "An map of entity type id to {item_tag: \"\", chance: 0.0} objects.");
         return config;
     }
     public static StartupConfig INSTANCE = load();
