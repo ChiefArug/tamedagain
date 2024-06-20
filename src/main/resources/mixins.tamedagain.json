@@ -1,0 +1,6 @@
+{
+  "package": "chiefarug.mods.tamedagain.mixin",
+  "mixins": [
+    "TamedAgain_EntityGetTeamMixin"
+  ]
+}

@@ -2,8 +2,11 @@ package chiefarug.mods.tamedagain;
 
 import chiefarug.mods.tamedagain.capability.AlreadyTamableEntity;
 import chiefarug.mods.tamedagain.capability.ITamedEntity;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -11,6 +14,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
@@ -130,26 +135,31 @@ public class TameEventHandlers {
                 I SPENT HOURS DEBUGGING THIS.
                 break rant;
         }*/
-        if (!(event.getEntity() instanceof Mob potentiallyTamed)) return;
-        LivingEntity oldTarget = potentiallyTamed.getTarget();
+        if (!(event.getEntity() instanceof Mob attacker)) return;
         LivingEntity newTarget = event.getNewTarget();
-//        if (oldTarget != newTarget)
-//            LGGR.debug("Target trying to change from {} to {}", oldTarget, newTarget);
+
         if (event.getEntity().level.isClientSide || newTarget == null) return;
 
-        // don't allow tamed mobs to attack their owner or other tamed mobs.
-        // this is a bootiful line of code
-        potentiallyTamed.getCapability(CAPABILITY).resolve()
-                .flatMap(TameEventHandlers::getOwnerUUID)
-                .filter(ownerUUID -> ownerUUID.equals(newTarget.getUUID()) ||
-                        newTarget.getCapability(CAPABILITY).resolve()
-                                .flatMap(TameEventHandlers::getOwnerUUID)
-                                .filter(ownerUUID::equals).isPresent()
-                ).ifPresent(attackerOwnerId -> event.setCanceled(true));
+        Scoreboard scoreboard = attacker.level.getScoreboard();
+        assert attacker.level instanceof ServerLevel;
+        GameProfileCache profiles = attacker.level.getServer().getProfileCache();
+
+        // don't allow tamed mobs to attack anyone allied with them (owner, owner;s other tames ect)
+        Optional<PlayerTeam> attackerOwnerTeam = getOwnersTeam(attacker, profiles, scoreboard);
+        Optional<PlayerTeam> targetOwnerTeam = getOwnersTeam(newTarget, profiles, scoreboard);
+        if (attackerOwnerTeam.isEmpty() || targetOwnerTeam.filter(attackerOwnerTeam.get()::isAlliedTo).isEmpty())
+            return;
+
+        event.setCanceled(true);
     }
 
-    private static Optional<UUID> getOwnerUUID(ITamedEntity tameCap) {
-        return Optional.ofNullable(tameCap.getOwnerUUID());
+    private static Optional<PlayerTeam> getOwnersTeam(LivingEntity entity, GameProfileCache profiles, Scoreboard teams) {
+        return entity.getCapability(CAPABILITY)
+                .filter(ITamedEntity::isTame)
+                .map(ITamedEntity::getOwnerUUID)
+                .flatMap(profiles::get)
+                .map(GameProfile::getName)
+                .map(teams::getPlayersTeam);
     }
 
     @SubscribeEvent
