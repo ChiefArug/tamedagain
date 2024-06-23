@@ -145,6 +145,7 @@ public class TameEventHandlers {
         GameProfileCache profiles = attacker.level.getServer().getProfileCache();
 
         // don't allow tamed mobs to attack anyone allied with them (owner, owner;s other tames ect)
+        //URGENT FIXME: not all players have teams, whoops. make sure to check owner uuids.
         Optional<PlayerTeam> attackerOwnerTeam = getOwnersTeam(attacker, profiles, scoreboard);
         Optional<PlayerTeam> targetOwnerTeam = getOwnersTeam(newTarget, profiles, scoreboard);
         if (attackerOwnerTeam.isEmpty() || targetOwnerTeam.filter(attackerOwnerTeam.get()::isAlliedTo).isEmpty())
@@ -169,6 +170,23 @@ public class TameEventHandlers {
 //            LGGR.debug("set breakpoint here");
 //        }
     }
+
+    @SubscribeEvent // mobs hurt by tamed mobs will drop player drops
+    public static void onLivingHurt(LivingHurtEvent event) {
+        event.getEntity().getCapability(CAPABILITY)
+                .filter(ITamedEntity::isTame)
+                .ifPresent(cap -> {
+                    LivingEntity hurtEntity = event.getEntity();
+                    hurtEntity.lastHurtByPlayerTime = 100;
+                    Player owner = cap.getOwner();
+                    if (owner != null) {
+                        hurtEntity.lastHurtByPlayer = owner;
+                    } else {
+                        hurtEntity.lastHurtByPlayer = null;
+                    }
+                });
+    }
+
 
     //TODO: Death event and show death message?
 }
