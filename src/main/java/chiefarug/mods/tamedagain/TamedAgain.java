@@ -46,6 +46,7 @@ public class TamedAgain {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         modBus.addListener(TamingFood::registerRegistry);
+        modBus.addListener(TamingConfiguration::registerRegistry);
         ITEMS.register(modBus);
         forgeBus.addGenericListener(Entity.class, ITamedEntity::attachToEntity);
         StartupConfig.init();

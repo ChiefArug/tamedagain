@@ -1,0 +1,8 @@
+{
+  "follow_start": 8,
+  "follow_end": 2,
+  "teleport_start": 12,
+  "speed_mod": 1.5,
+  "flying": false,
+  "target_goal_index": 0
+}

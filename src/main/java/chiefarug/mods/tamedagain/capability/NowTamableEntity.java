@@ -1,6 +1,7 @@
 package chiefarug.mods.tamedagain.capability;
 
 import chiefarug.mods.tamedagain.CommonConfig;
+import chiefarug.mods.tamedagain.TamingConfiguration;
 import chiefarug.mods.tamedagain.goals.ITamedAgainGoalMarker;
 import chiefarug.mods.tamedagain.goals.TamedEntityFollowOwnerGoal;
 import chiefarug.mods.tamedagain.goals.TamedEntityOwnerHurtByTargetGoal;
@@ -114,8 +115,15 @@ public class NowTamableEntity implements ITamedEntity {
                     oldGoals = stealStopClearGoals(entity.goalSelector);
                     oldTargetSelectors = stealStopClearGoals(entity.targetSelector);
                 }
-                insertGoalsAt(entity.targetSelector, oldTargetSelectors, 0, List.of(new TamedEntityOwnerHurtByTargetGoal(getTamedEntity()), new TamedEntityOwnerHurtTargetGoal(getTamedEntity())));
-                insertGoalsBefore(entity.goalSelector, oldGoals, RandomStrollGoal.class, List.of(new TamedEntityFollowOwnerGoal(getTamedEntity(), 1.5, 8, 2)));
+
+                TamingConfiguration configuration = TamingConfiguration.getConfiguration(entity.getType(), entity.level.registryAccess());
+
+                insertGoalsAt(entity.targetSelector, oldTargetSelectors, configuration.targetGoalIndex(), List.of(new TamedEntityOwnerHurtByTargetGoal(getTamedEntity()), new TamedEntityOwnerHurtTargetGoal(getTamedEntity())));
+                TamedEntityFollowOwnerGoal followOwnerGoal = new TamedEntityFollowOwnerGoal(getTamedEntity(), configuration);
+                if (configuration.followGoalIndex().isPresent())
+                    insertGoalsAt(entity.goalSelector, oldGoals, configuration.followGoalIndex().get(), List.of(followOwnerGoal));
+                else
+                    insertGoalsBefore(entity.goalSelector, oldGoals, RandomStrollGoal.class, 1, List.of(followOwnerGoal));
 
 
             }//TODO: How to reset brain back to good state? Do we need to just remake the brain and replace it??
@@ -135,7 +143,7 @@ public class NowTamableEntity implements ITamedEntity {
         }
     }
 
-    private static void insertGoalsBefore(GoalSelector goalSelector, Collection<Goal> originalGoals, Class<? extends Goal> target, Collection<Goal> newGoals) {
+    private static void insertGoalsBefore(GoalSelector goalSelector, Collection<Goal> originalGoals, Class<? extends Goal> target, int defaultIndex, Collection<Goal> newGoals) {
         goalSelector.removeAllGoals();
         int i = 0;
         boolean inserted = false;
@@ -147,6 +155,10 @@ public class NowTamableEntity implements ITamedEntity {
             }
             goalSelector.addGoal(++i, original);
         }
+        // if we didn't insert any goals then abort and insert at the default position.
+        // this will remove all the goals we just added but that doesn't matter
+        if (!inserted)
+            insertGoalsAt(goalSelector, originalGoals, defaultIndex, newGoals);
     }
 
     @NotNull

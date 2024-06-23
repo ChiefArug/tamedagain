@@ -1,9 +1,9 @@
 package chiefarug.mods.tamedagain.goals;
 
+import chiefarug.mods.tamedagain.TamingConfiguration;
 import chiefarug.mods.tamedagain.capability.ITamedEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +13,11 @@ import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
 import java.util.EnumSet;
 
+import static net.minecraft.world.entity.ai.goal.FollowOwnerGoal.MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING;
+import static net.minecraft.world.entity.ai.goal.FollowOwnerGoal.MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING;
+
 public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalMarker {
+    private final float teleportDistanceSqrd;;
     private final Mob entity;
     private final ITamedEntity cap;
     private Player owner;
@@ -24,8 +28,13 @@ public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalM
     private final float stopDistance;
     private final float startDistance;
     private float oldWaterCost;
+    private boolean flying;
 
-    public TamedEntityFollowOwnerGoal(Mob entity, double speedModifier, float startDistance, float stopDistance) {
+    public TamedEntityFollowOwnerGoal(Mob entity, TamingConfiguration config) {
+        this(entity, config.speedMod(), config.followStart(), config.followEnd(), config.teleportStart(), config.flying());
+    }
+
+    public TamedEntityFollowOwnerGoal(Mob entity, double speedModifier, float startDistance, float stopDistance, float teleportDistance, boolean flying) {
         this.entity = entity;
         this.cap = entity.getCapability(ITamedEntity.CAPABILITY).resolve().get();
         this.level = entity.level;
@@ -33,6 +42,8 @@ public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalM
         this.navigation = entity.getNavigation();
         this.startDistance = startDistance;
         this.stopDistance = stopDistance;
+        this.teleportDistanceSqrd = teleportDistance * teleportDistance;
+        this.flying = flying;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
@@ -79,7 +90,7 @@ public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalM
         if (--this.timeToRecalcPath <= 0) {
             this.timeToRecalcPath = this.adjustedTickDelay(10);
             if (!this.entity.isLeashed() && !this.entity.isPassenger()) {
-                if (this.entity.distanceToSqr(this.owner) >= FollowOwnerGoal.TELEPORT_WHEN_DISTANCE_IS * FollowOwnerGoal.TELEPORT_WHEN_DISTANCE_IS)
+                if (this.entity.distanceToSqr(this.owner) >= teleportDistanceSqrd)
                     this.teleportToOwner();
                 else
                     this.navigation.moveTo(this.owner, this.speedModifier);
@@ -91,9 +102,9 @@ public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalM
         BlockPos ownerPos = this.owner.blockPosition();
 
         for (int i = 0; i < 10; ++i) {
-            int x = this.randomIntInclusive(-FollowOwnerGoal.MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, FollowOwnerGoal.MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
-            int y = this.randomIntInclusive(-FollowOwnerGoal.MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, FollowOwnerGoal.MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
-            int z = this.randomIntInclusive(-FollowOwnerGoal.MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, FollowOwnerGoal.MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
+            int x = this.randomIntInclusive(-MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
+            int y = this.randomIntInclusive(-MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
+            int z = this.randomIntInclusive(-MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING, MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING);
             if (this.maybeTeleportTo(ownerPos.getX() + x, ownerPos.getY() + y, ownerPos.getZ() + z))
                 break;
         }
@@ -113,7 +124,7 @@ public class TamedEntityFollowOwnerGoal extends Goal implements ITamedAgainGoalM
 
     private boolean canTeleportTo(BlockPos targetPos) {
         BlockPathTypes pathType = WalkNodeEvaluator.getBlockPathTypeStatic(this.level, targetPos.mutable());
-        if (pathType != BlockPathTypes.WALKABLE) {
+        if (pathType != BlockPathTypes.WALKABLE && !flying) {
             return false;
         } else {
             BlockPos pos = targetPos.subtract(this.entity.blockPosition());
