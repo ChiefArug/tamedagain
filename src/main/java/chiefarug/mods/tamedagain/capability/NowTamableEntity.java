@@ -38,7 +38,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import static chiefarug.mods.tamedagain.TamedAgain.LGGR;
-import static chiefarug.mods.tamedagain.capability.NowTamableEntity.AIType.*;
+import static chiefarug.mods.tamedagain.capability.NowTamableEntity.AIType.BRAIN;
+import static chiefarug.mods.tamedagain.capability.NowTamableEntity.AIType.GOAL;
+import static chiefarug.mods.tamedagain.capability.NowTamableEntity.AIType.UNKNOWN;
 
 public class NowTamableEntity implements ITamedEntity {
     private final LazyOptional<ITamedEntity> thisButLazy = LazyOptional.of(this);
@@ -60,7 +62,10 @@ public class NowTamableEntity implements ITamedEntity {
     }
 
     @Override
-    public void forceTame(UUID owner) {this.owner = owner;}
+    public void forceTame(UUID owner) {
+        this.owner = owner;
+        this.entity.setPersistenceRequired();
+    }
 
     @Override
     public void tame(Player owner) {
@@ -74,6 +79,7 @@ public class NowTamableEntity implements ITamedEntity {
         }
         setSitting(owner, true);
         spawnParticles(true);
+        this.entity.setPersistenceRequired();
     }
 
     private void applySit() {

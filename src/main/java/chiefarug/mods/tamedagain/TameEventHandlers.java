@@ -169,4 +169,6 @@ public class TameEventHandlers {
 //            LGGR.debug("set breakpoint here");
 //        }
     }
+
+    //TODO: Death event and show death message?
 }
