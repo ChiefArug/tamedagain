@@ -1,0 +1,17 @@
+{
+  "conditions": [{
+    "type": "forge:item_exists",
+    "item": "tamedagain:staff"
+  }],
+  "type": "crafting_shaped",
+  "pattern": [
+    "N","R","R"
+  ],
+  "key": {
+    "N": {"item": "nether_star" },
+    "R": { "item": "end_rod" }
+  },
+  "result": {
+    "item": "tamedagain:staff"
+  }
+}
