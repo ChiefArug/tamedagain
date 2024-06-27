@@ -135,32 +135,46 @@ public class TameEventHandlers {
                 I SPENT HOURS DEBUGGING THIS.
                 break rant;
         }*/
-        if (!(event.getEntity() instanceof Mob attacker)) return;
+        LivingEntity attacker = event.getEntity();
         LivingEntity newTarget = event.getNewTarget();
 
         if (event.getEntity().level.isClientSide || newTarget == null) return;
 
-        Scoreboard scoreboard = attacker.level.getScoreboard();
-        assert attacker.level instanceof ServerLevel;
-        GameProfileCache profiles = attacker.level.getServer().getProfileCache();
 
-        // don't allow tamed mobs to attack anyone allied with them (owner, owner;s other tames ect)
-        //URGENT FIXME: not all players have teams, whoops. make sure to check owner uuids.
-        Optional<PlayerTeam> attackerOwnerTeam = getOwnersTeam(attacker, profiles, scoreboard);
-        Optional<PlayerTeam> targetOwnerTeam = getOwnersTeam(newTarget, profiles, scoreboard);
-        if (attackerOwnerTeam.isEmpty() || targetOwnerTeam.filter(attackerOwnerTeam.get()::isAlliedTo).isEmpty())
-            return;
+        // don't allow tamed mobs to attack their owner, anyone owned by their owner or
+        // anyone owned by anyone allied with their owner
+        Optional<UUID> attackerOwner = attacker.getCapability(CAPABILITY)
+                .resolve()
+                .map(ITamedEntity::getOwnerUUID);
+        if (attackerOwner.isEmpty()) return;
+        Optional<UUID> targetOwner = newTarget.getCapability(CAPABILITY)
+                .resolve()
+                .map(ITamedEntity::getOwnerUUID);
+        if (targetOwner.isEmpty()) return;
 
-        event.setCanceled(true);
-    }
+        if (attackerOwner.get().equals(targetOwner.get())) {
+            event.setCanceled(true);
+        } else {
+            Scoreboard scoreboard = attacker.level.getScoreboard();
+            assert attacker.level instanceof ServerLevel;
+            GameProfileCache profiles = attacker.level.getServer().getProfileCache();
 
-    private static Optional<PlayerTeam> getOwnersTeam(LivingEntity entity, GameProfileCache profiles, Scoreboard teams) {
-        return entity.getCapability(CAPABILITY)
-                .filter(ITamedEntity::isTame)
-                .map(ITamedEntity::getOwnerUUID)
-                .flatMap(profiles::get)
-                .map(GameProfile::getName)
-                .map(teams::getPlayersTeam);
+            Optional<PlayerTeam> attackerOwnerTeam = attackerOwner
+                    .flatMap(profiles::get)
+                    .map(GameProfile::getName)
+                    .map(scoreboard::getPlayersTeam);
+            if (attackerOwnerTeam.isEmpty()) return;
+
+            Optional<PlayerTeam> targetOwnerTeam = targetOwner
+                    .flatMap(profiles::get)
+                    .map(GameProfile::getName)
+                    .map(scoreboard::getPlayersTeam);
+            if (targetOwnerTeam.isEmpty()) return;
+
+            if (attackerOwnerTeam.get().isAlliedTo(targetOwnerTeam.get())) {
+                event.setCanceled(true);
+            }
+        }
     }
 
     @SubscribeEvent
@@ -179,11 +193,7 @@ public class TameEventHandlers {
                     LivingEntity hurtEntity = event.getEntity();
                     hurtEntity.lastHurtByPlayerTime = 100;
                     Player owner = cap.getOwner();
-                    if (owner != null) {
-                        hurtEntity.lastHurtByPlayer = owner;
-                    } else {
-                        hurtEntity.lastHurtByPlayer = null;
-                    }
+                    hurtEntity.lastHurtByPlayer = owner;
                 });
     }
 
