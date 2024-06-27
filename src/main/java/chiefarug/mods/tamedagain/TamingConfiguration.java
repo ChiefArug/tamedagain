@@ -26,15 +26,15 @@ public record TamingConfiguration(float followStart, float followEnd, float tele
             Codec.INT.optionalFieldOf("follow_goal_index").forGetter(TamingConfiguration::followGoalIndex)
     ).apply(instance, TamingConfiguration::new));
     public static final ResourceLocation DEFAULT_LOCATION = MODRL.withPath("default");
-    public static final TamingConfiguration DEFAULT_DEFAULT = new TamingConfiguration(8, 2, 12, 1.5, 0, false, Optional.empty());
+    public static TamingConfiguration FALLBACK = new TamingConfiguration(8, 2, 12, 1.5, 0, false, Optional.empty());
 
     public static TamingConfiguration getConfiguration(EntityType<?> type, RegistryAccess registryAccess) {
         var configurations = registryAccess.registryOrThrow(KEY);
         var entities = registryAccess.registryOrThrow(ENTITY_TYPES);
-        // try get the entities one, else look for the default one, else use the default default one.
+        // try get the entities one, else look for the default one, else use the fallback one.
         return configurations
                 .getOptional(entities.getKey(type))
-                .orElseGet(() -> configurations.getOptional(DEFAULT_LOCATION).orElse(DEFAULT_DEFAULT));
+                .orElseGet(() -> configurations.getOptional(DEFAULT_LOCATION).orElse(FALLBACK));
     }
 
     public static ResourceKey<Registry<TamingConfiguration>> KEY;
