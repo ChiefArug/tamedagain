@@ -29,6 +29,7 @@ public interface ITamedEntity extends ICapabilitySerializable<CompoundTag>, NonN
     Capability<ITamedEntity> CAPABILITY = CapabilityManager.get(new CapabilityToken<>() {});
 
     static void attachToEntity(AttachCapabilitiesEvent<Entity> event) {
+        // You cannot tame players. No I am not implementing that.
         if (event.getObject() instanceof Mob mob && !mob.level.isClientSide) {
             if (mob instanceof TamableAnimal ta) {
                 event.addCapability(ID, new AlreadyTamableEntity(ta));

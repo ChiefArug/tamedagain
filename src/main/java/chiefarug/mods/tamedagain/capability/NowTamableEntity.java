@@ -217,15 +217,15 @@ public class NowTamableEntity implements ITamedEntity {
         MutableComponent message;
         if (CommonConfig.useTranslations.get())
             message = sit ?
-                            Component.translatable("tamedagain.now_sitting.message", getTamedEntity().getDisplayName()) :
-                            Component.translatable("tamedagain.now_following.message", getTamedEntity().getDisplayName());
-        else message = sit ?
-                            getTamedEntity().getDisplayName().copy().append(Component.literal(" is now sitting!")) :
-                            getTamedEntity().getDisplayName().copy().append(Component.literal(" is now following!"));
+                    Component.translatable("tamedagain.now_sitting.message", getTamedEntity().getDisplayName()) :
+                    Component.translatable("tamedagain.now_following.message", getTamedEntity().getDisplayName());
+        else message = sit ? // append everything to an empty component so that style doesn't do strange things.
+                Component.empty().append(getTamedEntity().getDisplayName()).append(Component.literal(" is now sitting!")) :
+                Component.empty().append(getTamedEntity().getDisplayName()).append(Component.literal(" is now following!"));
         player.displayClientMessage(message, true);
     }
 
-    @Override
+    @Override // when the entity loads into game make sure to apply the correct goals.
     public void onLoad() {
         if (isTame())
             if (isSitting()) applySit();
