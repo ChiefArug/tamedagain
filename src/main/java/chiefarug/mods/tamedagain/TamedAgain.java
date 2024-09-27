@@ -34,6 +34,7 @@ public class TamedAgain {
     }
 
     public static final String MODID = "tamedagain";
+    static final String NETWORK_VERSION = "1";
     public static final ResauceLocation MODRL = new ResauceLocation();
     public static final Logger LGGR = LogUtils.getLogger();
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
@@ -51,6 +52,7 @@ public class TamedAgain {
         forgeBus.addGenericListener(Entity.class, ITamedEntity::attachToEntity);
         StartupConfig.init();
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CommonConfig.spec);
+        TamedAgainNetworking.init();
 
         // blah blah conditional registration bad. I know. This is so it can be used entirely server side.
         if (StartupConfig.INSTANCE.registerStaff())

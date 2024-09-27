@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import static chiefarug.mods.tamedagain.TamedAgain.LGGR;
 import static chiefarug.mods.tamedagain.TamedAgain.MODID;
@@ -28,7 +27,7 @@ public record StartupConfig(boolean registerStaff) {
             Codec.BOOL.fieldOf("register_staff").forGetter(StartupConfig::registerStaff)
     ).apply(instance, StartupConfig::new));
     private static @NotNull JsonObject addComments(JsonObject config) {
-        config.addProperty("register_staff_comment", "If the staff item should be registered. Disabling this allows the mod to be used on servers without the clients needing it, but you must tag another item with tamedagain:staff if you want to allow a single item to tame anything.");
+        config.addProperty("register_staff_comment", "If the staff item should be registered. Disabling this allows the mod to be used on servers without the clients needing it, but you must tag another item with tamedagain:staff if you want to allow a single item to tame anything except mobs in the tamedagain:staff_taming_blacklist entity type tag.");
         return config;
     }
     public static StartupConfig INSTANCE = load();

@@ -18,14 +18,14 @@ public abstract class TamedAgain_EntityGetTeamMixin extends CapabilityProvider<E
 
     @Shadow public Level level;
 
-    protected TamedAgain_EntityGetTeamMixin() {
+    private TamedAgain_EntityGetTeamMixin() {
         super(Entity.class);
     }
 
     // TODO: Can this be changed to use getOwnerUUID instead of getOwner so it works when the owner is offline?
     // TODO: Sync the capability (optionally, so that vanilla can still connect) so that this works client side for
     //  glowing effect rendering and minimap stuff (im guessing minimaps show team stuff).
-    @Inject(method = "getTeam",at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getTeam",at = @At("HEAD"), cancellable = true, require = 1)
     public void tamedagain$getTeam(CallbackInfoReturnable<Team> cir) {
         if (level.isClientSide) return; // currently it is not synced so it is pointless checking on client side.
         getCapability(ITamedEntity.CAPABILITY)

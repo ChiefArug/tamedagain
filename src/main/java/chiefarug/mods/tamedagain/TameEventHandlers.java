@@ -147,33 +147,37 @@ public class TameEventHandlers {
                 .resolve()
                 .map(ITamedEntity::getOwnerUUID);
         if (attackerOwner.isEmpty()) return;
+        if (attackerOwner.get().equals(newTarget.getUUID())) {
+            event.setCanceled(true);
+            return;
+        }
         Optional<UUID> targetOwner = newTarget.getCapability(CAPABILITY)
                 .resolve()
                 .map(ITamedEntity::getOwnerUUID);
         if (targetOwner.isEmpty()) return;
 
-        if (attackerOwner.get().equals(targetOwner.get())) {
+//        if (attackerOwner.get().equals(targetOwner.get())) {
+//            event.setCanceled(true);
+//            return;
+//        }
+        Scoreboard scoreboard = attacker.level.getScoreboard();
+        assert attacker.level instanceof ServerLevel;
+        GameProfileCache profiles = attacker.level.getServer().getProfileCache();
+
+        Optional<PlayerTeam> attackerOwnerTeam = attackerOwner
+                .flatMap(profiles::get)
+                .map(GameProfile::getName)
+                .map(scoreboard::getPlayersTeam);
+        if (attackerOwnerTeam.isEmpty()) return;
+
+        Optional<PlayerTeam> targetOwnerTeam = targetOwner
+                .flatMap(profiles::get)
+                .map(GameProfile::getName)
+                .map(scoreboard::getPlayersTeam);
+        if (targetOwnerTeam.isEmpty()) return;
+
+        if (attackerOwnerTeam.get().isAlliedTo(targetOwnerTeam.get())) {
             event.setCanceled(true);
-        } else {
-            Scoreboard scoreboard = attacker.level.getScoreboard();
-            assert attacker.level instanceof ServerLevel;
-            GameProfileCache profiles = attacker.level.getServer().getProfileCache();
-
-            Optional<PlayerTeam> attackerOwnerTeam = attackerOwner
-                    .flatMap(profiles::get)
-                    .map(GameProfile::getName)
-                    .map(scoreboard::getPlayersTeam);
-            if (attackerOwnerTeam.isEmpty()) return;
-
-            Optional<PlayerTeam> targetOwnerTeam = targetOwner
-                    .flatMap(profiles::get)
-                    .map(GameProfile::getName)
-                    .map(scoreboard::getPlayersTeam);
-            if (targetOwnerTeam.isEmpty()) return;
-
-            if (attackerOwnerTeam.get().isAlliedTo(targetOwnerTeam.get())) {
-                event.setCanceled(true);
-            }
         }
     }
 
@@ -192,8 +196,7 @@ public class TameEventHandlers {
                 .ifPresent(cap -> {
                     LivingEntity hurtEntity = event.getEntity();
                     hurtEntity.lastHurtByPlayerTime = 100;
-                    Player owner = cap.getOwner();
-                    hurtEntity.lastHurtByPlayer = owner;
+                    hurtEntity.lastHurtByPlayer = cap.getOwner();
                 });
     }
 
